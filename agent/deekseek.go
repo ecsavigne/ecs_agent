@@ -1,10 +1,10 @@
-package deekseek
+package agent
 
 import (
 	"context"
 	"fmt"
 
-	ia "github.com/ecsavigne/ecs_agent"
+	ia "github.com/ecsavigne/ecs_agent/config"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"
@@ -20,7 +20,7 @@ type deekSeek struct {
 	ConfigTool     *ia.ConfigTool
 }
 
-func NewDeekSeek(c ...ia.ConfigModel) *deekSeek {
+func newDeekSeek(c ...ia.ConfigModel) *deekSeek {
 	var (
 		model  = "deepseek-chat"
 		apiKey = ""

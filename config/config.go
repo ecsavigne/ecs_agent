@@ -1,4 +1,4 @@
-package ia
+package config
 
 import (
 	"encoding/json"

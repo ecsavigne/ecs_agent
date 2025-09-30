@@ -1,0 +1,27 @@
+package agent
+
+import (
+	"github.com/ecsavigne/ecs_agent/config"
+)
+
+type TYPE_AGENT string
+
+const (
+	DEEKSEEK TYPE_AGENT = "deekseek"
+	GEMINI   TYPE_AGENT = "gemini"
+)
+
+// New returns a new instance of the LLM given by typeAgent and c.
+// typeAgent must be one of config.DEEKSEEK or config.GEMINI.
+// c must be a config.ConfigModel.
+// If typeAgent is not recognized, New panics with "Agent not found".
+func New(typeAgent TYPE_AGENT, c config.ConfigModel) config.LLM {
+	switch typeAgent {
+	case DEEKSEEK:
+		return newDeekSeek(c)
+	case GEMINI:
+		return newGemini(c)
+	default:
+		panic("Agent not found")
+	}
+}

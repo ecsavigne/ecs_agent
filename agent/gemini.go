@@ -1,10 +1,10 @@
-package gemini
+package agent
 
 import (
 	"context"
 	"fmt"
 
-	ia "github.com/ecsavigne/ecs_agent"
+	ia "github.com/ecsavigne/ecs_agent/config"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/googleai"
@@ -20,7 +20,7 @@ type gemini struct {
 	ConfigTool     *ia.ConfigTool
 }
 
-func NewGemini(c ...ia.ConfigModel) *gemini {
+func newGemini(c ...ia.ConfigModel) *gemini {
 	var (
 		model  = "gemini-2.5-flash"
 		apiKey = ""
