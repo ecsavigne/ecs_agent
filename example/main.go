@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	ia "github.com/ecsavigne/ecs_agent"
-	"github.com/ecsavigne/ecs_agent/gemini"
+	"github.com/ecsavigne/ecs_agent/agent"
+	ia "github.com/ecsavigne/ecs_agent/config"
 
 	"github.com/tmc/langchaingo/llms"
 )
@@ -46,23 +46,20 @@ var tools = &ia.ConfigTool{
 }
 
 func main() {
-	// dseek := deekseek.NewDeekSeek(ia.ConfigModel{
+	// iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
 	// 	RootPrompt:     "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
 	// 	RootPromptPath: "",
 	// APIKey: "asdsadsk-c97ed79162a7416a8e18e00b114a4356_v1asdas",
-	// 	TemplateVar:    map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
-	// 	Tool:           tools,
+	// 	TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
+	// 	Tool:        tools,
 	// })
-	gemini := gemini.NewGemini(ia.ConfigModel{
+	iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
 		RootPrompt:     "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
 		RootPromptPath: "",
 		APIKey:         "sadasdasd_AIzaSyDT2m0bCEQoStkgqptr1ZxOPoC4ddc06CEPMsk-c97ed79162a7416a8e18e00b114a4356sk-c97ed79162a7416a8e18e00b114a4356",
 		TemplateVar:    map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
 		Tool:           tools,
 	})
-
-	var iaChat ia.LLM = gemini
-	// var iaChat ia.LLM = dseek
 
 	fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", iaChat.GetWelcomeMessage())
 
@@ -74,6 +71,7 @@ func main() {
 			input = reader.Text()
 			// input = "encuentra todos los correos de este remitente notifications@github.com 3"
 			// input = "Dame los 3 primeros correos"
+			// input = "Que puedes hacer"
 			if input == "exit" {
 				os.Exit(0)
 			}
