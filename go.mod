@@ -1,4 +1,4 @@
-module agent
+module github.com/ecsavigne/ecs_agent
 
 go 1.25.1
 

@@ -1,9 +1,10 @@
 package deekseek
 
 import (
-	ia "agent"
 	"context"
 	"fmt"
+
+	ia "github.com/ecsavigne/ecs_agent"
 
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/openai"

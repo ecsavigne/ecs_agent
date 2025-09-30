@@ -1,11 +1,12 @@
 package main
 
 import (
-	ia "agent"
-	"agent/gemini"
 	"bufio"
 	"fmt"
 	"os"
+
+	ia "github.com/ecsavigne/ecs_agent"
+	"github.com/ecsavigne/ecs_agent/gemini"
 
 	"github.com/tmc/langchaingo/llms"
 )
