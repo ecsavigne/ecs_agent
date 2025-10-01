@@ -54,11 +54,11 @@ func main() {
 	// 	Tool:        tools,
 	// })
 	iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
-		RootPrompt:     "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
-		RootPromptPath: "",
-		APIKey:         "sadasdasd_AIzaSyDT2m0bCEQoStkgqptr1ZxOPoC4ddc06CEPMsk-c97ed79162a7416a8e18e00b114a4356sk-c97ed79162a7416a8e18e00b114a4356",
-		TemplateVar:    map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
-		Tool:           tools,
+		RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
+		APIKey:     "AIzaSyDT2m0bCEQoStkgqptr1ZxOPoC4ddc06CE",
+		// APIKey:         "sadasdasd_AIzaSyDT2m0bCEQoStkgqptr1ZxOPoC4ddc06CEPMsk-c97ed79162a7416a8e18e00b114a4356sk-c97ed79162a7416a8e18e00b114a4356",
+		TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
+		Tool:        tools,
 	})
 
 	fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", iaChat.GetWelcomeMessage())
