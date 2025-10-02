@@ -14,14 +14,21 @@ type gemini struct {
 	base
 }
 
-func newGemini(c ...ia.ConfigModel) *gemini {
+func newGemini(c ...ia.ConfigModel) (agent *gemini) {
 	var (
 		model  = "gemini-2.5-flash"
 		apiKey = ""
 		mv     = make(map[string]any)
 		tool   = new(ia.ConfigTool)
 		tpl    = ""
+		a      *gemini
 	)
+
+	defer func() {
+		if r := recover(); r != nil {
+			agent = a
+		}
+	}()
 
 	if len(c) > 0 {
 		config := c[0]
@@ -53,7 +60,7 @@ func newGemini(c ...ia.ConfigModel) *gemini {
 
 	promptRoot := prompts.NewPromptTemplate(tpl, []string{""})
 
-	a := &gemini{
+	a = &gemini{
 		base: base{
 			llm:            llm,
 			tpl:            &promptRoot,
