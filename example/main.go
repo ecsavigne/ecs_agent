@@ -46,16 +46,10 @@ var tools = &ia.ConfigTool{
 }
 
 func main() {
-	// iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
-	// 	RootPrompt:     "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
-	// 	RootPromptPath: "",
-	// APIKey: "asdsadsk-c97ed79162a7416a8e18e00b114a4356_v1asdas",
-	// 	TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
-	// 	Tool:        tools,
-	// })
-	iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
+	// iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
+	iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
 		RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
-		// APIKey:         "sadasdasd_AIzaSyDT2m0bCEQoStkgqptr1ZxOPoC4ddc06CEPMsk-c97ed79162a7416a8e18e00b114a4356sk-c97ed79162a7416a8e18e00b114a4356",
+		// APIKey:     "Required",
 		TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
 		Tool:        tools,
 	})
@@ -68,9 +62,6 @@ func main() {
 		fmt.Print("\033[94mYou:\033[0m\n")
 		if reader.Scan() {
 			input = reader.Text()
-			// input = "encuentra todos los correos de este remitente notifications@github.com 3"
-			// input = "Dame los 3 primeros correos"
-			// input = "Que puedes hacer"
 			if input == "exit" {
 				os.Exit(0)
 			}

@@ -7,13 +7,10 @@ import (
 	"reflect"
 
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/prompts"
 )
 
 // args[0] is the callback_func and args[1] is the args(array with name args in order))
 type FuncArgs [2]any
-
-type Tpl = prompts.PromptTemplate
 
 func (f FuncArgs) Get(pos int) any {
 	return f[pos]

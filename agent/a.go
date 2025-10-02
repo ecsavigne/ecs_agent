@@ -2,6 +2,7 @@ package agent
 
 import (
 	"github.com/ecsavigne/ecs_agent/config"
+	"github.com/ecsavigne/ecs_agent/error_ia"
 )
 
 type TYPE_AGENT string
@@ -16,12 +17,15 @@ const (
 // c must be a config.ConfigModel.
 // If typeAgent is not recognized, New panics with "Agent not found".
 func New(typeAgent TYPE_AGENT, c config.ConfigModel) config.LLM {
+	if c.APIKey == "" {
+		panic(error_ia.ErrorApiKeyNotSet)
+	}
 	switch typeAgent {
 	case DEEKSEEK:
 		return newDeekSeek(c)
 	case GEMINI:
 		return newGemini(c)
 	default:
-		panic("Agent not found")
+		panic(error_ia.ErrorAgentNotFound)
 	}
 }
