@@ -16,8 +16,6 @@ import (
 	"github.com/tmc/langchaingo/prompts"
 )
 
-type llmBase map[TYPE_AGENT]any
-
 type base struct {
 	llm            any
 	tpl            *prompts.PromptTemplate
@@ -27,15 +25,6 @@ type base struct {
 	ConfigTool     *ia.ConfigTool
 	Typ            TYPE_AGENT
 }
-
-// func (b *base) setLLM(llm ia.LLM) {
-// 	switch v := llm.(type) {
-// 	case *gemini:
-// 		b.llms[v.Typ] = v.llm
-// 	case *deekSeek:
-// 		b.llms[v.Typ] = v.llm
-// 	}
-// }
 
 func (b *base) getHistory() []llms.MessageContent {
 	return b.history

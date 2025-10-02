@@ -80,13 +80,6 @@ func LoadPromptFromFile(pathPrompt string) string {
 	return string(bytes)
 }
 
-type LLM interface {
-	Reset()
-	GetWelcomeMessage() string
-	SetWelcomeMessage(msg string)
-	Ask(question string) string
-}
-
 func ExecuteFunction(fn any, args string, paramsStr []string) string {
 	func_exec := reflect.ValueOf(fn)
 	funcType := func_exec.Type()
