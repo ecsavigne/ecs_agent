@@ -18,7 +18,7 @@ type LLM interface {
 	SetWelcomeMessage(msg string)
 	SetTpl(prompt_path string, is_path ...bool) *base
 	Format(var_tpl map[string]any) (string, error)
-	Ask(question string) string
+	Ask(question string, isTool ...bool) string
 }
 
 // New returns a new instance of the LLM given by typeAgent and c.

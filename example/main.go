@@ -49,6 +49,7 @@ func main() {
 	// iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
 	iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
 		RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
+		APIKey:     "sk-c97ed79162a7416a8e18e00b114a4356",
 		// APIKey:     "Required",
 		TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
 		Tool:        tools,

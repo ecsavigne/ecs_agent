@@ -65,27 +65,27 @@ func (b *base) setRootPrompt() {
 	// b.history = append(b.history, msg)
 	b.setHistory(append(b.getHistory(), msg))
 
-	switch b.Typ {
-	case GEMINI:
-		{
-			msg = b.createMessage(llms.ChatMessageTypeHuman, "")
-			// b.history = append(b.history, msg)
-			b.setHistory(append(b.getHistory(), msg))
-		}
-	}
+	// switch b.Typ {
+	// case GEMINI:
+	// 	{
+	// 		msg = b.createMessage(llms.ChatMessageTypeHuman, "")
+	// 		// b.history = append(b.history, msg)
+	// 		b.setHistory(append(b.getHistory(), msg))
+	// 	}
+	// }
 
-	completion := b.generateCompletion()
-	if completion == nil {
-		fmt.Println("Error generating root prompt")
-	}
+	// completion := b.generateCompletion()
+	// if completion == nil {
+	// 	fmt.Println("Error generating root prompt")
+	// }
 
-	respText := b.getContent(completion)
-	if respText != "" {
-		msg = b.createMessage(llms.ChatMessageTypeAI, respText)
-		b.welcomeMessage = respText
-		// b.history = append(b.history, msg)
-		b.setHistory(append(b.getHistory(), msg))
-	}
+	// respText := b.getContent(completion)
+	// if respText != "" {
+	// 	msg = b.createMessage(llms.ChatMessageTypeAI, respText)
+	// 	b.welcomeMessage = respText
+	// 	// b.history = append(b.history, msg)
+	// 	b.setHistory(append(b.getHistory(), msg))
+	// }
 
 }
 
@@ -143,7 +143,7 @@ func (b *base) generateContent(
 	}
 }
 
-func (b *base) generateCompletion(isUsr ...bool) *llms.ContentResponse {
+func (b *base) generateCompletion(isTool ...bool) *llms.ContentResponse {
 	opts := []llms.CallOption{
 		// llms.WithMaxTokens(300),
 		// llms.WithJSONMode(),
@@ -159,7 +159,7 @@ func (b *base) generateCompletion(isUsr ...bool) *llms.ContentResponse {
 		err        error
 	)
 
-	if len(isUsr) > 0 && isUsr[0] {
+	if len(isTool) > 0 && isTool[0] {
 		if b.ConfigTool != nil && b.ConfigTool.Funcs != nil {
 			opts = append(opts, []llms.CallOption{
 				llms.WithTools(b.ConfigTool.Tool),
@@ -263,7 +263,7 @@ func (b *base) Format(var_tpl map[string]any) (string, error) {
 	return b.tpl.Format(var_tpl)
 }
 
-func (b *base) Ask(question string) string {
+func (b *base) Ask(question string, isTool ...bool) string {
 	msg := b.createMessage(llms.ChatMessageTypeHuman, question)
 	b.history = append(b.history, msg)
 
