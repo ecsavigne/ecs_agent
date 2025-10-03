@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,6 +9,8 @@ import (
 
 	"github.com/tmc/langchaingo/llms"
 )
+
+type FuncStream func(ctx context.Context, chunk []byte) error
 
 // args[0] is the callback_func and args[1] is the args(array with name args in order))
 type FuncArgs [2]any

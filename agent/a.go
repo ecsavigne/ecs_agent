@@ -15,10 +15,10 @@ const (
 type LLM interface {
 	Reset()
 	GetWelcomeMessage() string
-	SetWelcomeMessage(msg string)
-	SetTpl(prompt_path string, is_path ...bool) *base
-	Format(var_tpl map[string]any) (string, error)
-	Ask(question string, isTool ...bool) string
+	SetWelcomeMessage(string)
+	SetTpl(string, ...bool) *base
+	Format(map[string]any) (string, error)
+	Ask(string, config.FuncStream, ...bool) string
 }
 
 // New returns a new instance of the LLM given by typeAgent and c.

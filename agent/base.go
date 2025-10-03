@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/ecsavigne/ecs_agent/config"
 	ia "github.com/ecsavigne/ecs_agent/config"
 	"github.com/ecsavigne/ecs_agent/error_ia"
 	"github.com/tmc/langchaingo/llms"
@@ -34,14 +35,6 @@ func (b *base) setHistory(history []llms.MessageContent) {
 	b.history = history
 }
 
-// func (b *base) getConfigTool() *ia.ConfigTool {
-// 	return b.ConfigTool
-// }
-
-// func (b *base) setConfigTool(tool *ia.ConfigTool) {
-// 	b.ConfigTool = tool
-// }
-
 func (b base) getGemini() *googleai.GoogleAI {
 	if v, ok := b.llm.(*googleai.GoogleAI); ok {
 		return v
@@ -65,27 +58,25 @@ func (b *base) setRootPrompt() {
 	// b.history = append(b.history, msg)
 	b.setHistory(append(b.getHistory(), msg))
 
-	// switch b.Typ {
-	// case GEMINI:
-	// 	{
-	// 		msg = b.createMessage(llms.ChatMessageTypeHuman, "")
-	// 		// b.history = append(b.history, msg)
-	// 		b.setHistory(append(b.getHistory(), msg))
-	// 	}
-	// }
+	switch b.Typ {
+	case GEMINI:
+		{
+			msg = b.createMessage(llms.ChatMessageTypeHuman, "")
+			b.setHistory(append(b.getHistory(), msg))
+		}
+	}
 
-	// completion := b.generateCompletion()
-	// if completion == nil {
-	// 	fmt.Println("Error generating root prompt")
-	// }
+	completion := b.generateCompletion(nil)
+	if completion == nil {
+		fmt.Println("Error generating root prompt")
+	}
 
-	// respText := b.getContent(completion)
-	// if respText != "" {
-	// 	msg = b.createMessage(llms.ChatMessageTypeAI, respText)
-	// 	b.welcomeMessage = respText
-	// 	// b.history = append(b.history, msg)
-	// 	b.setHistory(append(b.getHistory(), msg))
-	// }
+	respText := b.getContent(completion)
+	if respText != "" {
+		msg = b.createMessage(llms.ChatMessageTypeAI, respText)
+		b.welcomeMessage = respText
+		b.setHistory(append(b.getHistory(), msg))
+	}
 
 }
 
@@ -143,7 +134,7 @@ func (b *base) generateContent(
 	}
 }
 
-func (b *base) generateCompletion(isTool ...bool) *llms.ContentResponse {
+func (b *base) generateCompletion(fnStream config.FuncStream, isTool ...bool) *llms.ContentResponse {
 	opts := []llms.CallOption{
 		// llms.WithMaxTokens(300),
 		// llms.WithJSONMode(),
@@ -170,6 +161,10 @@ func (b *base) generateCompletion(isTool ...bool) *llms.ContentResponse {
 
 	// textStr := ""
 	// completion, err = b.llm.GenerateContent(
+	if !(len(isTool) > 0 && isTool[0]) && fnStream != nil {
+		opts = append(opts, llms.WithStreamingFunc(fnStream))
+	}
+
 	completion, err = b.generateContent(
 		context.Background(),
 		b.history,
@@ -180,7 +175,7 @@ func (b *base) generateCompletion(isTool ...bool) *llms.ContentResponse {
 		if errors.Is(err, llms.ErrUnexpectedChatMessageType) { // ErrRateLimit
 			// Handle rate limiting
 			time.Sleep(time.Second * 60)
-			return b.generateCompletion()
+			return b.generateCompletion(nil)
 		} else if errors.Is(err, llms.ErrQuotaExceeded) { // ErrQuotaExceeded
 			// Handle quota exceeded
 			fmt.Println(error_ia.ErrorQuotaExceeded)
@@ -204,23 +199,15 @@ func (b *base) generateCompletion(isTool ...bool) *llms.ContentResponse {
 				// execute function and get response
 				strResp := ia.ExecuteFunction(fnArg.Get(0), params, fnArg.Get(1).([]string))
 
-				// switch b.Typ {
-				// case GEMINI:
-				// 	{ // Append tool_use to messageHistory
 				msg = b.createMessageToolCall(tool_calls[0])
-				// b.history = append(b.history, msg)
 				b.setHistory(append(b.getHistory(), msg))
-				// 	}
-				// }
 
 				// create message role tool
 				msg = b.createMessageTool(func_name, tool_call_id, strResp)
 				// add message to history
-				// b.history = append(b.history, msg)
 				b.setHistory(append(b.getHistory(), msg))
 				// call generate completion again
-				completion = b.generateCompletion()
-				return completion
+				return b.generateCompletion(fnStream)
 			}
 		}
 	}
@@ -263,11 +250,16 @@ func (b *base) Format(var_tpl map[string]any) (string, error) {
 	return b.tpl.Format(var_tpl)
 }
 
-func (b *base) Ask(question string, isTool ...bool) string {
+func (b *base) Ask(question string, fnStream config.FuncStream, isTool ...bool) string {
+	_isTool := false
+	if len(isTool) > 0 {
+		_isTool = isTool[0]
+	}
+
 	msg := b.createMessage(llms.ChatMessageTypeHuman, question)
 	b.history = append(b.history, msg)
 
-	completion := b.generateCompletion(true)
+	completion := b.generateCompletion(fnStream, _isTool)
 	content := b.getContent(completion)
 	msg = b.createMessage(llms.ChatMessageTypeAI, content)
 	b.history = append(b.history, msg)

@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"context"
 	"fmt"
 	"os"
 
@@ -46,10 +48,9 @@ var tools = &ia.ConfigTool{
 }
 
 func main() {
-	// iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
-	iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
+	iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
+		// iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
 		RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
-		APIKey:     "sk-c97ed79162a7416a8e18e00b114a4356",
 		// APIKey:     "Required",
 		TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
 		Tool:        tools,
@@ -67,7 +68,13 @@ func main() {
 				os.Exit(0)
 			}
 
-			fmt.Printf("\033[92mIAChat\033[0m: %s\n", iaChat.Ask(input))
+			buff := bytes.Buffer{}
+			iaChat.Ask(input, func(ctx context.Context, chunk []byte) error {
+				buff.Write(chunk)
+				return nil
+			})
+
+			fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", buff.String())
 		}
 
 	}
