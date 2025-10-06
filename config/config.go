@@ -106,9 +106,19 @@ func ExecuteFunction(fn any, args string, paramsStr []string) string {
 	}
 
 	res := func_exec.Call(params)
-	if len(res) > 0 {
-		return fmt.Sprintf("%v", res[0])
+
+	exit := "("
+	for _, v := range res {
+		if exit != "(" {
+			exit += ", "
+		}
+
+		if value := v.Interface(); value != nil {
+			exit += fmt.Sprintf("%v", value)
+		}
 	}
 
-	return ""
+	exit += ")"
+
+	return exit
 }
