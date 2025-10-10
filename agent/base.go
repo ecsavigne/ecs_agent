@@ -8,23 +8,53 @@ import (
 	"log"
 	"time"
 
-	"github.com/ecsavigne/ecs_agent/config"
 	ia "github.com/ecsavigne/ecs_agent/config"
 	"github.com/ecsavigne/ecs_agent/error_ia"
+	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/googleai"
-	"github.com/tmc/langchaingo/llms/openai"
 	"github.com/tmc/langchaingo/prompts"
 )
 
 type base struct {
-	llm            any
+	llm            llms.Model
 	tpl            *prompts.PromptTemplate
 	varTpl         map[string]any
 	welcomeMessage string
 	history        []llms.MessageContent
 	ConfigTool     *ia.ConfigTool
-	Typ            TYPE_AGENT
+	Typ            ia.TYPE_AGENT
+}
+
+func (b *base) setConfigToBase(optsModel ...ia.ConfigMod) {
+	ConfigModel := ia.DefaultConfigModel()
+
+	for _, opt := range optsModel {
+		opt(&ConfigModel)
+	}
+
+	tpl := ia.GetTplText(ConfigModel)
+	promptRoot := prompts.NewPromptTemplate(tpl, []string{""})
+
+	*b = base{
+		tpl:            &promptRoot,
+		varTpl:         ConfigModel.TemplateVar,
+		welcomeMessage: "",
+		history:        []llms.MessageContent{},
+		ConfigTool:     ConfigModel.Tool,
+	}
+
+	switch ConfigModel.GetTypeAgent() {
+	case ia.DEEKSEEK:
+		b.llm = deekseekLLM(ConfigModel.APIKey, ConfigModel.Model)
+		b.Typ = ia.DEEKSEEK
+	case ia.GEMINI:
+		b.llm = geminiLLM(ConfigModel.APIKey, ConfigModel.Model)
+		b.Typ = ia.GEMINI
+	case ia.NEW_GAI:
+		b.llm = newGaiLLM(ConfigModel.APIKey, ConfigModel.Model)
+		b.Typ = ia.NEW_GAI
+	}
+
 }
 
 func (b *base) getHistory() []llms.MessageContent {
@@ -35,40 +65,31 @@ func (b *base) setHistory(history []llms.MessageContent) {
 	b.history = history
 }
 
-func (b base) getGemini() *googleai.GoogleAI {
-	if v, ok := b.llm.(*googleai.GoogleAI); ok {
-		return v
-	}
-	return nil
-}
-
-func (b *base) getDeekSeek() *openai.LLM {
-	if v, ok := b.llm.(*openai.LLM); ok {
-		return v
-	}
-
-	return nil
+func (b base) getLLM() llms.Model {
+	return b.llm
 }
 
 func (b *base) setRootPrompt() {
-	// promptStr, _ := b.tpl.Format(b.varTpl)
-	promptStr, _ := b.tpl.Format(b.varTpl)
+	promptStr, e := b.tpl.Format(b.varTpl)
+	if e != nil || promptStr == "" {
+		promptStr = `Eres un especialista en cualquier area. Tu nombre es Bot. Tu mensaje de bienvenida sera, ej: """Hola soy bot tu especialista en cualquier area"""`
+	}
 
 	msg := b.createMessage(llms.ChatMessageTypeSystem, promptStr)
-	// b.history = append(b.history, msg)
 	b.setHistory(append(b.getHistory(), msg))
 
 	switch b.Typ {
-	case GEMINI:
+	case ia.GEMINI, ia.NEW_GAI:
 		{
-			msg = b.createMessage(llms.ChatMessageTypeHuman, "")
+			msg = b.createMessage(llms.ChatMessageTypeHuman, "quien eres tu?")
 			b.setHistory(append(b.getHistory(), msg))
 		}
 	}
 
 	completion := b.generateCompletion(nil)
 	if completion == nil {
-		fmt.Println("Error generating root prompt")
+		// fmt.Println("Error generating root prompt")
+		return
 	}
 
 	respText := b.getContent(completion)
@@ -112,36 +133,23 @@ func (*base) createMessageToolCall(tool_call llms.ToolCall) llms.MessageContent 
 	return toolResponse
 }
 
-func (b *base) generateContent(
-	ctx context.Context,
-	messages []llms.MessageContent,
-	options ...llms.CallOption,
+func (b *base) generateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption,
 ) (*llms.ContentResponse, error) {
-
-	switch b.Typ {
-	case GEMINI:
-		if b.getGemini() == nil {
-			return nil, fmt.Errorf("Gemini LLM not set")
-		}
-		return b.getGemini().GenerateContent(ctx, messages, options...)
-	case DEEKSEEK:
-		if b.getDeekSeek() == nil {
-			return nil, fmt.Errorf("DeekSeek LLM not set")
-		}
-		return b.getDeekSeek().GenerateContent(ctx, messages, options...)
-	default:
-		return nil, nil
-	}
+	return b.getLLM().GenerateContent(ctx, messages, options...)
 }
 
-func (b *base) generateCompletion(fnStream config.FuncStream, isTool ...bool) *llms.ContentResponse {
+func (b *base) generateCompletion(fnStream ia.FuncStream, isTool ...bool) *llms.ContentResponse {
 	opts := []llms.CallOption{
 		// llms.WithMaxTokens(300),
 		// llms.WithJSONMode(),
 		llms.WithTemperature(0.2),
 		llms.WithTopP(0.4),
-		llms.WithFrequencyPenalty(1.5),
+
 		// llms.WithStreamingFunc(steamTest),
+	}
+
+	if b.Typ != ia.NEW_GAI {
+		opts = append(opts, llms.WithFrequencyPenalty(1.5))
 	}
 
 	var (
@@ -183,8 +191,11 @@ func (b *base) generateCompletion(fnStream config.FuncStream, isTool ...bool) *l
 		} else {
 			// Handle other errors
 			log.Printf("%s. Error is: %v", error_ia.ErrorGettingCompletion, err)
-
 		}
+	}
+
+	if completion == nil {
+		return nil
 	}
 
 	tool_calls := completion.Choices[0].ToolCalls
@@ -236,6 +247,12 @@ func (b *base) SetWelcomeMessage(msg string) {
 	b.welcomeMessage = msg
 }
 
+// SetTpl sets the prompt template for the agent.
+// The prompt template is used to generate the welcome message and to
+// provide context for the AI to generate responses.
+// If is_path is true, the prompt_path is expected to be a file path
+// containing the prompt template. Otherwise, prompt_path is expected to
+// contain the prompt template directly.
 func (b *base) SetTpl(prompt_path string, is_path ...bool) *base {
 	if len(is_path) > 0 && is_path[0] {
 		prompt_path = ia.LoadPromptFromFile(prompt_path)
@@ -246,11 +263,16 @@ func (b *base) SetTpl(prompt_path string, is_path ...bool) *base {
 	return b
 }
 
+// Format returns a formatted string based on the prompt template and the
+// given map of variables. It returns an error if the formatting fails.
+// The format string is a Go template string, where variables are denoted
+// as {{.VarName}}. The map of variables should contain the values for these
+// variables.
 func (b *base) Format(var_tpl map[string]any) (string, error) {
 	return b.tpl.Format(var_tpl)
 }
 
-func (b *base) Ask(question string, fnStream config.FuncStream, isTool ...bool) string {
+func (b *base) Ask(question string, fnStream ia.FuncStream, isTool ...bool) string {
 	_isTool := false
 	if len(isTool) > 0 {
 		_isTool = isTool[0]
@@ -265,4 +287,16 @@ func (b *base) Ask(question string, fnStream config.FuncStream, isTool ...bool) 
 	b.history = append(b.history, msg)
 
 	return content
+}
+
+func (b *base) NewLLMChain(prompt prompts.FormatPrompter, opts ...chains.ChainCallOption) *chains.LLMChain {
+	return chains.NewLLMChain(b.getLLM(), prompt, opts...)
+}
+
+func (*base) Run(ctx context.Context, c chains.Chain, input any, options ...chains.ChainCallOption) (string, error) {
+	return chains.Run(ctx, c, input, options...)
+}
+
+func (*base) Call(ctx context.Context, c chains.Chain, input map[string]any, options ...chains.ChainCallOption) (map[string]any, error) {
+	return chains.Call(ctx, c, input, options...)
 }

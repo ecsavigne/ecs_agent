@@ -1,77 +1,28 @@
 package agent
 
 import (
-	"context"
+	"fmt"
 
-	ia "github.com/ecsavigne/ecs_agent/config"
-
-	"github.com/tmc/langchaingo/llms"
-	"github.com/tmc/langchaingo/llms/googleai"
-	"github.com/tmc/langchaingo/prompts"
+	"github.com/ecsavigne/ecs_agent/config"
 )
 
 type gemini struct {
 	base
 }
 
-func newGemini(c ...ia.ConfigModel) (agent *gemini) {
-	var (
-		model  = "gemini-2.5-flash"
-		apiKey = ""
-		mv     = make(map[string]any)
-		tool   = new(ia.ConfigTool)
-		tpl    = ""
-		a      *gemini
-	)
+func newGemini(c ...config.ConfigMod) (agent *gemini) {
+	var a *gemini
 
 	defer func() {
 		if r := recover(); r != nil {
-			agent = a
+			fmt.Println("Error in newGemini: ", r)
 		}
 	}()
 
-	if len(c) > 0 {
-		config := c[0]
-		if config.APIKey != "" {
-			apiKey = config.APIKey
-		}
-		if config.Model != "" {
-			model = config.Model
-		}
-		if config.RootPrompt != "" {
-			tpl = config.RootPrompt
-		}
-		if config.RootPromptPath != "" {
-			tpl = ia.LoadPromptFromFile(config.RootPromptPath)
-		}
-		if config.TemplateVar != nil {
-			mv = config.TemplateVar
-		}
-		if config.Tool != nil {
-			tool = config.Tool
-		}
-	}
+	b := base{}
+	b.setConfigToBase(c...)
 
-	llm, _ := googleai.New(
-		context.Background(),
-		googleai.WithDefaultModel(model),
-		googleai.WithAPIKey(apiKey),
-	)
-
-	promptRoot := prompts.NewPromptTemplate(tpl, []string{""})
-
-	a = &gemini{
-		base: base{
-			llm:            llm,
-			tpl:            &promptRoot,
-			varTpl:         mv,
-			welcomeMessage: "",
-			history:        []llms.MessageContent{},
-			ConfigTool:     tool,
-			Typ:            GEMINI,
-		},
-	}
-
+	a = &gemini{base: b}
 	a.setRootPrompt()
 
 	return a

@@ -14,7 +14,10 @@ import (
 )
 
 func getMailNotRead(sender string, maxResults int) string {
-	return "Show me the emails not read from tools getMailNotRead\n"
+	// return "Show me the emails not read from tools getMailNotRead\n"
+	return `Remitente: faturadigital@lightvirtual.com.br
+	Body: Paga la factura de electricidad, atentamente empresa light 
+	`
 }
 
 var tools = &ia.ConfigTool{
@@ -48,15 +51,38 @@ var tools = &ia.ConfigTool{
 }
 
 func main() {
-	iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
-		// iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
-		RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
-		// APIKey:     "Required",
-		TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
-		Tool:        tools,
-	})
+	// iaChat := agent.New(agent.GEMINI, ia.ConfigModel{
+	// 	// iaChat := agent.New(agent.DEEKSEEK, ia.ConfigModel{
+	// 	// RootPrompt: "Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.",
+	// 	APIKey: "ApiKey",
+	// 	// TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
+	// 	// Tool:        tools,
+	// })
+	// iaChat := agent.New(config.DEEKSEEK,
+	// iaChat := agent.New(config.GEMINI,
+	iaChat := agent.New(ia.NEW_GAI,
+		ia.WithAPIKey("Your_ApiKey"),
+		ia.WithRootPrompt("Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple."),
+		ia.WithTemplateVar(map[string]any{"Nombre": "MailBot GAI", "Especiality": "Analisis de emails"}),
+		ia.WithTool(tools),
+	)
 
 	fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", iaChat.GetWelcomeMessage())
+	// fmt.Printf("\033[92mYou:\033[0m\n%s\n", "Neceto informacion sobre el real madrid en esta temporada.")
+	/*Ex. use of chains */
+	//  prompt := prompts.NewChatPromptTemplate([]prompts.MessageFormatter{
+	//     prompts.NewHumanMessagePromptTemplate(
+	//         "Neceto informacion sobre el .{team} en esta temporada.",
+	//         []string{}, // Sin variables
+	//     ),
+	// })
+
+	// chain := iaChat.NewLLMChain(prompts.NewPromptTemplate("Neceto informacion sobre el Real Madrid de futbol en esta temporada 2025-2026.", []string{""}))
+	// out, e := iaChat.Run(context.Background(), chain, "")
+	// if e != nil {
+	// 	fmt.Println("Error executing chain: ", e.Error())
+	// }
+	// fmt.Printf("\033[92mIAChat:\033[0m\n%+v\n", out)
 
 	for {
 		var input string
@@ -64,18 +90,25 @@ func main() {
 		fmt.Print("\033[94mYou:\033[0m\n")
 		if reader.Scan() {
 			input = reader.Text()
+			// input := "Neceto informacion sobre el Real Madrid de futbol en esta temporada 2025-2026."
 			if input == "exit" {
 				os.Exit(0)
 			}
 
 			buff := bytes.Buffer{}
-			iaChat.Ask(input, func(ctx context.Context, chunk []byte) error {
+			str := iaChat.Ask(input, func(ctx context.Context, chunk []byte) error {
 				buff.Write(chunk)
 				return nil
 			})
 
-			fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", buff.String())
-		}
+			if buff.Len() == 0 {
+				buff.WriteString(str)
+			}
+			// iaChat.Ask(input, nil)
 
+			fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", buff.String())
+			// input = "exit"
+			// fmt.Printf("\033[94mYou:\033[0m\n")
+		}
 	}
 }

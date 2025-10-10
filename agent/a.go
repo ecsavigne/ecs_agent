@@ -1,15 +1,13 @@
 package agent
 
 import (
+	"context"
+
 	"github.com/ecsavigne/ecs_agent/config"
 	"github.com/ecsavigne/ecs_agent/error_ia"
-)
-
-type TYPE_AGENT string
-
-const (
-	DEEKSEEK TYPE_AGENT = "deekseek"
-	GEMINI   TYPE_AGENT = "gemini"
+	internal_config "github.com/ecsavigne/ecs_agent/internal/config"
+	"github.com/tmc/langchaingo/chains"
+	"github.com/tmc/langchaingo/prompts"
 )
 
 type LLM interface {
@@ -19,21 +17,29 @@ type LLM interface {
 	SetTpl(string, ...bool) *base
 	Format(map[string]any) (string, error)
 	Ask(string, config.FuncStream, ...bool) string
+	NewLLMChain(prompts.FormatPrompter, ...chains.ChainCallOption) *chains.LLMChain
+	Run(context.Context, chains.Chain, any, ...chains.ChainCallOption) (string, error)
+	Call(context.Context, chains.Chain, map[string]any, ...chains.ChainCallOption) (map[string]any, error)
 }
 
 // New returns a new instance of the LLM given by typeAgent and c.
 // typeAgent must be one of config.DEEKSEEK or config.GEMINI.
 // c must be a config.ConfigModel.
 // If typeAgent is not recognized, New panics with "Agent not found".
-func New(typeAgent TYPE_AGENT, c config.ConfigModel) LLM {
-	if c.APIKey == "" {
-		panic(error_ia.ErrorApiKeyNotSet)
-	}
+func New(typeAgent config.TYPE_AGENT, c ...config.ConfigMod) LLM {
+	// if c.APIKey == "" {
+	// 	panic(error_ia.ErrorApiKeyNotSet)
+	// }
 	switch typeAgent {
-	case DEEKSEEK:
-		return newDeekSeek(c)
-	case GEMINI:
-		return newGemini(c)
+	case config.DEEKSEEK:
+		c = append(c, config.WithModel("deepseek-chat"))
+		c = append(c, internal_config.WithTypeAgent(config.DEEKSEEK))
+		return newDeekSeek(c...)
+	case config.GEMINI:
+		return newGemini(c...)
+	case config.NEW_GAI:
+		c = append(c, internal_config.WithTypeAgent(config.NEW_GAI))
+		return newgaiNew(c...)
 	default:
 		panic(error_ia.ErrorAgentNotFound)
 	}

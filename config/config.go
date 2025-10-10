@@ -10,6 +10,14 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
+type TYPE_AGENT string
+
+const (
+	DEEKSEEK TYPE_AGENT = "deekseek"
+	GEMINI   TYPE_AGENT = "gemini"
+	NEW_GAI  TYPE_AGENT = "new_gai"
+)
+
 type FuncStream func(ctx context.Context, chunk []byte) error
 
 // args[0] is the callback_func and args[1] is the args(array with name args in order))
@@ -62,8 +70,9 @@ type ConfigTool struct {
 
 // config for configure llm
 type ConfigModel struct {
-	APIKey string
-	Model  string
+	APIKey    string
+	Model     string
+	typeAgent TYPE_AGENT
 	// One prompt string for configure with the root system
 	RootPrompt string
 	// Info prompt for configure with the root system located in a file
@@ -71,6 +80,75 @@ type ConfigModel struct {
 	// Values for configure var in the root prompt if exists (key: nameVar, value: valueVar)
 	TemplateVar map[string]any
 	Tool        *ConfigTool
+}
+
+func (c ConfigModel) GetTypeAgent() TYPE_AGENT {
+	return c.typeAgent
+}
+
+func (c *ConfigModel) SetTypeAgent(typeAgent TYPE_AGENT) {
+	c.typeAgent = typeAgent
+}
+
+type ConfigMod func(*ConfigModel)
+
+func DefaultConfigModel() ConfigModel {
+	return ConfigModel{
+		APIKey:         "",
+		typeAgent:      GEMINI,
+		Model:          "gemini-2.5-flash",
+		RootPrompt:     "",
+		RootPromptPath: "",
+		TemplateVar:    make(map[string]any),
+		Tool:           (*ConfigTool)(nil),
+	}
+}
+
+func GetTplText(c ConfigModel) string {
+	if c.RootPrompt != "" {
+		return c.RootPrompt
+	}
+	if c.RootPromptPath != "" {
+		return LoadPromptFromFile(c.RootPromptPath)
+	}
+
+	return ""
+}
+
+func WithAPIKey(apiKey string) ConfigMod {
+	return func(c *ConfigModel) {
+		c.APIKey = apiKey
+	}
+}
+
+func WithModel(model string) ConfigMod {
+	return func(c *ConfigModel) {
+		c.Model = model
+	}
+}
+
+func WithRootPrompt(rootPrompt string) ConfigMod {
+	return func(c *ConfigModel) {
+		c.RootPrompt = rootPrompt
+	}
+}
+
+func WithRootPromptPath(rootPromptPath string) ConfigMod {
+	return func(c *ConfigModel) {
+		c.RootPromptPath = rootPromptPath
+	}
+}
+
+func WithTemplateVar(templateVar map[string]any) ConfigMod {
+	return func(c *ConfigModel) {
+		c.TemplateVar = templateVar
+	}
+}
+
+func WithTool(tool *ConfigTool) ConfigMod {
+	return func(c *ConfigModel) {
+		c.Tool = tool
+	}
 }
 
 func LoadPromptFromFile(pathPrompt string) string {
