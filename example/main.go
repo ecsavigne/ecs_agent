@@ -8,11 +8,10 @@ import (
 	"os"
 	"strings"
 
-	agent "github.com/ecsavigne/ecs_agent/agent"
-	"github.com/ecsavigne/ecs_agent/agent_mcp"
-	ia "github.com/ecsavigne/ecs_agent/config"
+	agent "github.com/ecsavigne/ecs_agent/v2/agent"
+	ia "github.com/ecsavigne/ecs_agent/v2/config"
 
-	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/v2"
 )
 
 func getMailNotRead(sender string, maxResults int) string {

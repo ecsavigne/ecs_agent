@@ -1,6 +1,6 @@
-module github.com/ecsavigne/ecs_agent
+module github.com/ecsavigne/ecs_agent/v2
 
-go 1.25.1
+go 1.25.5
 
 require (
 	cloud.google.com/go/auth v0.17.0
