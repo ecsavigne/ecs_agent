@@ -3,9 +3,9 @@ package agent
 import (
 	"context"
 
-	"github.com/ecsavigne/ecs_agent/config"
-	"github.com/ecsavigne/ecs_agent/error_ia"
-	internal_config "github.com/ecsavigne/ecs_agent/internal/config"
+	"github.com/ecsavigne/ecs_agent/v2/config"
+	"github.com/ecsavigne/ecs_agent/v2/error_ia"
+	internal_config "github.com/ecsavigne/ecs_agent/v2/internal/config"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/prompts"
 )

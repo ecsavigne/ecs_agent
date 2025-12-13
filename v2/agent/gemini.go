@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 
-	"github.com/ecsavigne/ecs_agent/config"
+	"github.com/ecsavigne/ecs_agent/v2/config"
 )
 
 type gemini struct {

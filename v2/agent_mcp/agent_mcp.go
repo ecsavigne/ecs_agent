@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ecsavigne/ecs_agent/agent"
-	"github.com/ecsavigne/ecs_agent/config"
+	"github.com/ecsavigne/ecs_agent/v2/agent"
+	"github.com/ecsavigne/ecs_agent/v2/config"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/tmc/langchaingo/agents"
 	"github.com/tmc/langchaingo/chains"

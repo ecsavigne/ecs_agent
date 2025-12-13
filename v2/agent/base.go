@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
-	ia "github.com/ecsavigne/ecs_agent/config"
-	"github.com/ecsavigne/ecs_agent/error_ia"
+	ia "github.com/ecsavigne/ecs_agent/v2/config"
+	"github.com/ecsavigne/ecs_agent/v2/error_ia"
 	"github.com/tmc/langchaingo/chains"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/prompts"

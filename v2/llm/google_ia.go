@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ecsavigne/ecs_agent/llm/calloption"
+	"github.com/ecsavigne/ecs_agent/v2/llm/calloption"
 	"github.com/tmc/langchaingo/llms"
 	"google.golang.org/genai"
 	"google.golang.org/protobuf/proto"

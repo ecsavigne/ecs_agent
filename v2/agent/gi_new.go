@@ -3,7 +3,7 @@ package agent
 import (
 	"fmt"
 
-	ia "github.com/ecsavigne/ecs_agent/config"
+	ia "github.com/ecsavigne/ecs_agent/v2/config"
 )
 
 type gaiNew struct {

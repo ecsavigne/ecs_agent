@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	_llm "github.com/ecsavigne/ecs_agent/llm"
+	_llm "github.com/ecsavigne/ecs_agent/v2/llm"
 	"github.com/tmc/langchaingo/llms/googleai"
 	"github.com/tmc/langchaingo/llms/openai"
 )
