@@ -12,6 +12,8 @@ import (
 
 type LLM interface {
 	Reset()
+	// GetBase returns the base of the LLM
+	GetBase() *base
 	GetWelcomeMessage() string
 	SetWelcomeMessage(string)
 	SetTpl(string, ...bool) *base
@@ -22,15 +24,15 @@ type LLM interface {
 	Call(context.Context, chains.Chain, map[string]any, ...chains.ChainCallOption) (map[string]any, error)
 }
 
-// New returns a new instance of the LLM given by typeAgent and c.
-// typeAgent must be one of config.DEEKSEEK or config.GEMINI.
+// New returns a new instance of the LLM given by typeModel and c.
+// typeModel must be one of config.DEEKSEEK or config.GEMINI.
 // c must be a config.ConfigModel.
-// If typeAgent is not recognized, New panics with "Agent not found".
-func New(typeAgent config.TYPE_AGENT, c ...config.ConfigMod) LLM {
+// If typeModel is not recognized, New panics with "Model not found".
+func New(typeModel config.TYPE_MODEL, c ...config.ConfigMod) LLM {
 	// if c.APIKey == "" {
 	// 	panic(error_ia.ErrorApiKeyNotSet)
 	// }
-	switch typeAgent {
+	switch typeModel {
 	case config.DEEKSEEK:
 		c = append(c, config.WithModel("deepseek-chat"))
 		c = append(c, internal_config.WithTypeAgent(config.DEEKSEEK))

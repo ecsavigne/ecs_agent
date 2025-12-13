@@ -10,12 +10,12 @@ import (
 	"github.com/tmc/langchaingo/llms"
 )
 
-type TYPE_AGENT string
+type TYPE_MODEL string
 
 const (
-	DEEKSEEK TYPE_AGENT = "deekseek"
-	GEMINI   TYPE_AGENT = "gemini"
-	NEW_GAI  TYPE_AGENT = "new_gai"
+	DEEKSEEK TYPE_MODEL = "deekseek"
+	GEMINI   TYPE_MODEL = "gemini"
+	NEW_GAI  TYPE_MODEL = "new_gai"
 )
 
 type FuncStream func(ctx context.Context, chunk []byte) error
@@ -70,9 +70,11 @@ type ConfigTool struct {
 
 // config for configure llm
 type ConfigModel struct {
-	APIKey    string
-	Model     string
-	typeAgent TYPE_AGENT
+	APIKey string
+	// name of model
+	Model string
+	// deekseek, gemini, new_gai
+	typeModel TYPE_MODEL
 	// One prompt string for configure with the root system
 	RootPrompt string
 	// Info prompt for configure with the root system located in a file
@@ -82,12 +84,12 @@ type ConfigModel struct {
 	Tool        *ConfigTool
 }
 
-func (c ConfigModel) GetTypeAgent() TYPE_AGENT {
-	return c.typeAgent
+func (c ConfigModel) GetTypeAgent() TYPE_MODEL {
+	return c.typeModel
 }
 
-func (c *ConfigModel) SetTypeAgent(typeAgent TYPE_AGENT) {
-	c.typeAgent = typeAgent
+func (c *ConfigModel) SetTypeModel(typeModel TYPE_MODEL) {
+	c.typeModel = typeModel
 }
 
 type ConfigMod func(*ConfigModel)
@@ -95,7 +97,7 @@ type ConfigMod func(*ConfigModel)
 func DefaultConfigModel() ConfigModel {
 	return ConfigModel{
 		APIKey:         "",
-		typeAgent:      GEMINI,
+		typeModel:      GEMINI,
 		Model:          "gemini-2.5-flash",
 		RootPrompt:     "",
 		RootPromptPath: "",

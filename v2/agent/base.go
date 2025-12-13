@@ -22,7 +22,7 @@ type base struct {
 	welcomeMessage string
 	history        []llms.MessageContent
 	ConfigTool     *ia.ConfigTool
-	Typ            ia.TYPE_AGENT
+	Typ            ia.TYPE_MODEL
 }
 
 func (b *base) setConfigToBase(optsModel ...ia.ConfigMod) {
@@ -65,7 +65,7 @@ func (b *base) setHistory(history []llms.MessageContent) {
 	b.history = history
 }
 
-func (b base) getLLM() llms.Model {
+func (b base) GetLLM() llms.Model {
 	return b.llm
 }
 
@@ -135,7 +135,7 @@ func (*base) createMessageToolCall(tool_call llms.ToolCall) llms.MessageContent 
 
 func (b *base) generateContent(ctx context.Context, messages []llms.MessageContent, options ...llms.CallOption,
 ) (*llms.ContentResponse, error) {
-	return b.getLLM().GenerateContent(ctx, messages, options...)
+	return b.GetLLM().GenerateContent(ctx, messages, options...)
 }
 
 func (b *base) generateCompletion(fnStream ia.FuncStream, isTool ...bool) *llms.ContentResponse {
@@ -290,7 +290,7 @@ func (b *base) Ask(question string, fnStream ia.FuncStream, isTool ...bool) stri
 }
 
 func (b *base) NewLLMChain(prompt prompts.FormatPrompter, opts ...chains.ChainCallOption) *chains.LLMChain {
-	return chains.NewLLMChain(b.getLLM(), prompt, opts...)
+	return chains.NewLLMChain(b.GetLLM(), prompt, opts...)
 }
 
 func (*base) Run(ctx context.Context, c chains.Chain, input any, options ...chains.ChainCallOption) (string, error) {

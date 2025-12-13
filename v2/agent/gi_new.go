@@ -27,3 +27,7 @@ func newgaiNew(c ...ia.ConfigMod) (agent *gaiNew) {
 
 	return a
 }
+
+func (g *gaiNew) GetBase() *base {
+	return &g.base
+}

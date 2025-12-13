@@ -27,3 +27,7 @@ func newDeekSeek(c ...config.ConfigMod) *deekSeek {
 
 	return a
 }
+
+func (ds *deekSeek) GetBase() *base {
+	return &ds.base
+}

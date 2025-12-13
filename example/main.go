@@ -6,8 +6,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
-	"github.com/ecsavigne/ecs_agent/agent"
+	agent "github.com/ecsavigne/ecs_agent/agent"
+	"github.com/ecsavigne/ecs_agent/agent_mcp"
 	ia "github.com/ecsavigne/ecs_agent/config"
 
 	"github.com/tmc/langchaingo/llms"
@@ -58,16 +60,21 @@ func main() {
 	// 	// TemplateVar: map[string]any{"Nombre": "MailBot", "Especiality": "Analisis de emails"},
 	// 	// Tool:        tools,
 	// })
-	// iaChat := agent.New(config.DEEKSEEK,
-	// iaChat := agent.New(config.GEMINI,
-	iaChat := agent.New(ia.NEW_GAI,
-		ia.WithAPIKey("Your_ApiKey"),
+	iaChat := agent.New(ia.DEEKSEEK,
+		// iaChat := agent.New(ia.GEMINI,
+		// iaChat := agent.New(ia.NEW_GAI,
+		// ia.WithAPIKey("XXXXXXXXXXX"),
+		ia.WithAPIKey("sk-XXXXXXXXX"),
 		ia.WithRootPrompt("Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple."),
 		ia.WithTemplateVar(map[string]any{"Nombre": "MailBot GAI", "Especiality": "Analisis de emails"}),
+		// ia.WithModel("deepseek-reasoner"),
+		// ia.WithModel("gemini-3-pro-preview"),
 		ia.WithTool(tools),
 	)
 
-	fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", iaChat.GetWelcomeMessage())
+	// iaChat.GetBase().SetWelcomeMessage("OOOOPsss")
+
+	// fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", iaChat.GetWelcomeMessage())
 	// fmt.Printf("\033[92mYou:\033[0m\n%s\n", "Neceto informacion sobre el real madrid en esta temporada.")
 	/*Ex. use of chains */
 	//  prompt := prompts.NewChatPromptTemplate([]prompts.MessageFormatter{
@@ -83,32 +90,49 @@ func main() {
 	// 	fmt.Println("Error executing chain: ", e.Error())
 	// }
 	// fmt.Printf("\033[92mIAChat:\033[0m\n%+v\n", out)
+	rootPront := strings.Builder{}
+	rootPront.WriteString("Eres un especialisata en **{{.Especiality}}** y tu nombre es **{{.Nombre}}**. da un mensaje de bienvenida de una oración simple.")
+	// rootPront.WriteString("Eres un especialisata en **Programacion** y tu nombre es **BootProgramer**. da un mensaje de bienvenida de una oración simple.")
+
+	agt := agent_mcp.NewAgentMcp(iaChat.GetBase().GetLLM(), agent_mcp.MCPClientConfig{
+		Endpoint:   "http://localhost:8080",
+		IsMemory:   true,
+		TypeAgent:  agent_mcp.TYPE_AGENT_CONVERSATIONAL,
+		RootPrompt: rootPront.String(),
+		VarTemplate: map[string]any{
+			"Nombre":      "MailBot GAI",
+			"Especiality": "Analisis de emails",
+		},
+		// InputVars: []string{"Nombre", "Especiality"},
+		// ShowPing: true,
+		// TimePing: 5,
+	})
 
 	for {
-		var input string
+		// var input string
 		reader := bufio.NewScanner(os.Stdin)
 		fmt.Print("\033[94mYou:\033[0m\n")
 		if reader.Scan() {
-			input = reader.Text()
-			// input := "Neceto informacion sobre el Real Madrid de futbol en esta temporada 2025-2026."
+			// if true {
+			input := reader.Text()
+			// input = "Neceto informacion sobre el Real Madrid de futbol en esta temporada 2025-2026."
+			// input := "Saluda a Edilberto Coello que vive en RJ"
 			if input == "exit" {
 				os.Exit(0)
 			}
 
 			buff := bytes.Buffer{}
-			str := iaChat.Ask(input, func(ctx context.Context, chunk []byte) error {
-				buff.Write(chunk)
-				return nil
-			})
-
+			// str := iaChat.Ask(input, func(ctx context.Context, chunk []byte) error {
+			// 	buff.Write(chunk)
+			// 	return nil
+			// })
+			str, _ := agt.Run(context.Background(), input)
 			if buff.Len() == 0 {
 				buff.WriteString(str)
 			}
 			// iaChat.Ask(input, nil)
 
 			fmt.Printf("\033[92mIAChat:\033[0m\n%s\n", buff.String())
-			// input = "exit"
-			// fmt.Printf("\033[94mYou:\033[0m\n")
 		}
 	}
 }

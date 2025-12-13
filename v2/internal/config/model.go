@@ -2,8 +2,8 @@ package config
 
 import "github.com/ecsavigne/ecs_agent/config"
 
-func WithTypeAgent(typeAgent config.TYPE_AGENT) config.ConfigMod {
+func WithTypeAgent(typeAgent config.TYPE_MODEL) config.ConfigMod {
 	return func(c *config.ConfigModel) {
-		c.SetTypeAgent(typeAgent)
+		c.SetTypeModel(typeAgent)
 	}
 }
